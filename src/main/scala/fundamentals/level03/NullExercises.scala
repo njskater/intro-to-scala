@@ -31,10 +31,10 @@ object NullExercises {
     **/
   def mkTrafficLightOrNull(str: String): TrafficLight =
     str match {
-      case "red" => ???
-      case "yellow" => ???
-      case "green" => ???
-      case _ => ???
+      case "red" => Red
+      case "yellow" => Yellow
+      case "green" => Green
+      case _ => null
     }
 
   /**
@@ -54,7 +54,12 @@ object NullExercises {
     *
     * Hint: Use `mkTrafficLightOrNull` and pattern matching
     */
-  def mkTrafficLightOrNullThenShow(str: String): String = ???
+  def mkTrafficLightOrNullThenShow(str: String): String = {
+    mkTrafficLightOrNull(str) match {
+      case null => "Traffic light is invalid"
+      case color => s"Traffic light is ${color.toString.toLowerCase()}"
+    }
+  }
 
   /**
     * Write a function that converts values from the real world into a `Person`.
@@ -73,7 +78,12 @@ object NullExercises {
     * scala> mkPersonOrNull("Bob", -1)
     * = null
     **/
-  def mkPersonOrNull(name: String, age: Int): Person = ???
+  def mkPersonOrNull(name: String, age: Int): Person = {
+    (name, age) match {
+      case (name, age) if (name.isEmpty || age < 0) => null
+      case (name, age) => Person(name, age)
+    }
+  }
 
   /**
     * scala> mkPersonOrNullThenChangeName("Bob", 20, "John")
@@ -87,13 +97,18 @@ object NullExercises {
     *
     * Hint: Use `mkPersonOrNull` and `changeName` (already implemented below)
     **/
-  def mkPersonOrNullThenChangeName(oldName: String, age: Int, newName: String): Person = ???
+  def mkPersonOrNullThenChangeName(oldName: String, age: Int, newName: String): Person = {
+    mkPersonOrNull(oldName, age) match {
+      case null => null
+      case p => if (newName.isEmpty) null else changeName(newName, p)
+    }
+  }
 
   def changeName(newName: String, person: Person): Person = person.copy(name = newName)
 
   /**
     * Thought exercise: Does the following function return a `null`?
     */
-  def mean(nums: List[Int]): Double = ???
+  def mean(nums: List[Int]): Double = nums.sum / nums.length .toDouble
 
 }

@@ -19,7 +19,7 @@ object IntroExercises {
     * scala> add(1, 2)
     * = 3
     **/
-  def add(x: Int, y: Int): Int = ???
+  def add(x: Int, y: Int): Int = x + y
 
   /**
     * Parametric types
@@ -42,7 +42,7 @@ object IntroExercises {
     *
     * Important: Every `if` must have an `else`! Otherwise your function is not total.
     */
-  def timesTwoIfEven(x: Int): Int = ???
+  def timesTwoIfEven(x: Int): Int = if ( x % 2 == 0 ) x * 2 else x
 
   /**
     * scala> showNumber(100)
@@ -50,6 +50,6 @@ object IntroExercises {
     *
     * Hint: Use string interpolation, e.g. s"$x"
     */
-  def showNumber(x: Int): String = ???
+  def showNumber(x: Int): String = s"The number is $x"
 
 }

@@ -1,5 +1,7 @@
 package fundamentals.level04
 
+import scala.util.Try
+
 /**
   * The exercises here are adapted from: http://www.cis.upenn.edu/~cis194/spring13/hw/02-ADTs.pdf
   *
@@ -33,7 +35,10 @@ object LogParser {
     * - Warning
     * - Error with (severity: Int)
     */
-  trait LogLevel
+  sealed trait LogLevel
+  case object Info extends LogLevel
+  case object Warning extends LogLevel
+  case class Error(severity: Int) extends LogLevel
 
   /**
     * Now create an ADT for `LogMessage`, where `LogMessage` can be one of two possibilities:
@@ -42,7 +47,10 @@ object LogParser {
     */
   type Timestamp = Int
 
-  trait LogMessage
+  sealed trait LogMessage
+
+  case class KnownLog(logLevel: LogLevel, timestamp: Timestamp, message: String) extends LogMessage
+  case class UnknownLog(message: String) extends LogMessage
 
  /**
    * - Once you have defined your data types:
@@ -62,7 +70,31 @@ object LogParser {
     * scala> parseLog("X blblbaaaaa")
     * = UnknownLog("X blblbaaaaa")
     **/
-  def parseLog(str: String): LogMessage = ???
+  def parseLog(str: String): LogMessage = {
+    val maybeMessage = str.split(",") match {
+      case Array(level, severity, timestamp, message) => createLogMessage(level, Some(severity), timestamp, message)
+      case Array(level, timestamp, message) => createLogMessage(level, None, timestamp, message)
+      case _ => Some(UnknownLog(str))
+    }
+    maybeMessage.getOrElse(UnknownLog(str))
+  }
+
+  def createLogMessage(level: String, severity: Option[String], timestamp: String, message: String): Option[KnownLog] = {
+    for {
+      l <- parseLogLevel(level, severity)
+      t <- parseInt(timestamp)
+    } yield KnownLog(l, t, message)
+  }
+
+  def parseLogLevel(logLevelStr: String, errorSeverityStr: Option[String]) : Option[LogLevel] = logLevelStr match {
+    case "I" => Some(Info)
+    case "W" => Some(Warning)
+    case "E" => errorSeverityStr.flatMap(s => parseInt(s)).map(severity => Error(severity))
+    case _ => None
+  }
+
+  def parseInt(intStr: String): Option[Int] = Try(intStr.toInt).toOption
+
 
   /**
     * scala> parseLogFile("I,147,mice in the air\nX blblbaaaaa")
@@ -72,7 +104,12 @@ object LogParser {
     * Hint: Convert an Array to a List with .toList
     * What if we get an empty line from the fileContent?
     */
-  def parseLogFile(fileContent: String): List[LogMessage] = ???
+  def parseLogFile(fileContent: String): List[LogMessage] = {
+    fileContent match {
+      case "" => Nil
+      case c => c.split("\\n").map(lineContent => parseLog(lineContent)).toList
+    }
+  }
 
   /**
     * Define a function that returns only logs that are unknown
@@ -80,7 +117,12 @@ object LogParser {
     * scala> getUnknowns(List(KnownLog(Info, 147, "mice in the air"), UnknownLog("blblbaaaaa")))
     * = List(UnknownLog("blblbaaaaa"))
     **/
-  def getUnknowns(logs: List[LogMessage]): List[LogMessage] = ???
+  def getUnknowns(logs: List[LogMessage]): List[LogMessage] = {
+    logs.filter {
+      case UnknownLog(_) => true
+      case _ => false
+    }
+  }
  
   /**
     * Write a function to convert a `LogMessage` to a readable `String`.
@@ -96,7 +138,11 @@ object LogParser {
     *
     * Hint: Pattern match and use string interpolation
     **/
-  def showLogMessage(log: LogMessage): String = ???
+  def showLogMessage(log: LogMessage): String = log match {
+    case KnownLog(Error(severity), timestamp, message) => s"Error $severity ($timestamp) $message"
+    case KnownLog(logLevel, timestamp, message) => s"$logLevel ($timestamp) $message"
+    case UnknownLog(message) => s"Unknown log: $message"
+  }
 
   /**
     * Use `showLogMessage` on error logs with severity greater than the given `severity`.
@@ -106,7 +152,12 @@ object LogParser {
     *
     * Hint: Use `parseLogFile` and `showLogMessage`
     **/
-  def showErrorsOverSeverity(fileContent: String, severity: Int): List[String] = ???
+  def showErrorsOverSeverity(fileContent: String, severity: Int): List[String] = {
+    parseLogFile(fileContent).filter{
+      case KnownLog(Error(s), timestamp, message) if s > severity => true
+      case _ => false
+    }.map(showLogMessage)
+  }
 
   /**
     * Now head over to `Main.scala` in the same package to complete the rest of the program.
